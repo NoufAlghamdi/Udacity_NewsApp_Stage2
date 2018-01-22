@@ -4,12 +4,16 @@ import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -29,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     /**
      * URL for news items data from the Guardian API.
      */
-    private static final String GUARDIAN_REQUEST_URL = "http://content.guardianapis.com/search?q=app&order-by=newest&show-references=author&show-tags=contributor&api-key=test";
+    private static final String GUARDIAN_REQUEST_URL = "http://content.guardianapis.com/search";
     /**
      * Constant value for the news loader ID. We can choose any integer.
      * This really only comes into play if you're using multiple loaders.
@@ -130,9 +134,28 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public Loader<List<NewsItem>> onCreateLoader(int id, Bundle args) {
         Log.e(LOG_TAG, "onCreateLoader()");
 
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        String orderBy = sharedPreferences.getString(
+                getString(R.string.settings_preference2key),
+                getString(R.string.settings_preference2dafaultvalue));
+
+        String searchFor = sharedPreferences.getString(
+                getString(R.string.settings_preference1key),
+                getString(R.string.settings_preference1dafaultvalue));
+
+        Uri baseUri = Uri.parse(GUARDIAN_REQUEST_URL);
+
+        Uri.Builder uriBuilder = baseUri.buildUpon();
+
+        uriBuilder.appendQueryParameter("q", "\"" + searchFor + "\"");
+        uriBuilder.appendQueryParameter("order-by", orderBy);
+        uriBuilder.appendQueryParameter("show-references", "author");
+        uriBuilder.appendQueryParameter("show-tags", "contributor");
+        uriBuilder.appendQueryParameter("api-key", "test");
+
         // Create a new loader for the given URL.
-        NewsLoader newsLoader = new NewsLoader(this, GUARDIAN_REQUEST_URL);
-        return newsLoader;
+        return new NewsLoader(this, uriBuilder.toString());
     }
 
     @Override
@@ -159,5 +182,21 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         // Loader reset, so we can clear out our existing data.
         newsAdapter.clear();
         Log.e(LOG_TAG, "onLoaderReset()");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.main_menuitem1) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
