@@ -13,7 +13,7 @@
 
     <string name="settings_preference2key">settings_preference1</string>
     <string name="settings_preference2title">Order By</string>
-    <string name="settings_preference2dafaultvalue">Newest</string>
+    <string name="settings_preference2dafaultvalue">newest</string>
 
 
 </resources>
