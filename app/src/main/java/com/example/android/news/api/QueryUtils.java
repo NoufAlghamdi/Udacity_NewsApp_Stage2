@@ -180,11 +180,28 @@ public class QueryUtils {
                 String section = newsItem.getString("sectionName");
                 String date = newsItem.getString("webPublicationDate");
                 String webUrl = newsItem.getString("webUrl");
-                //For the author, we need to extract the "tags" JSONArray, then the first JSONObject,
+                //For the author/contributors, we need to extract the "tags" JSONArray, then the JSONObject,
                 //then the "webTitle" String.
                 JSONArray tagsArray = newsItem.getJSONArray("tags");
-                JSONObject tagItem = tagsArray.getJSONObject(0);
-                String author = tagItem.getString("webTitle");
+                //Put the author to be null in case if there is no details about it.
+                String author = "";
+                //We need to check if there is a contributor, and how many they are.
+                int numberOfContributors = tagsArray.length();
+                if (numberOfContributors > 0) {
+                    //Add a comma if the current contributor is not the first one AND not the last one.
+                    for (int j = 0; j < numberOfContributors; j++) {
+                        if (j > 0 && j < numberOfContributors - 1) {
+                            author += ", ";
+                        }
+                        //Add an "and" if the current contributor is not the first one AND it is the last one.
+                        if (j > 0 && j == numberOfContributors - 1) {
+                            author += " and ";
+                        }
+                        //Extract the name of the contributor and add it the the author's string.
+                        JSONObject tagItem = tagsArray.getJSONObject(j);
+                        author += tagItem.getString("webTitle");
+                    }
+                }
 
                 // Create a new {@link NewsItem} object with the title, section, author, date,
                 // and webUrl from the JSON response, and add it to the list of newsList.
